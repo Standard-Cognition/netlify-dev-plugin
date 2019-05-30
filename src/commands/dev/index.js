@@ -184,13 +184,19 @@ class DevCommand extends Command {
     }
     process.env.NETLIFY_DEV = "true";
 
-    let settings = await serverSettings(Object.assign({}, config.dev, flags));
+    let settings = await serverSettings(Object.assign({}, config.dev, {
+      command: flags.command,
+      port: flags.port,
+      functions: flags.functions,
+      publish: flags.dir,
+    }));
 
     if (!(settings && settings.command)) {
       this.log(
         `${NETLIFYDEVWARN} No dev server detected, using simple static server`
       );
       let dist =
+        flags.dir ||
         (config.dev && config.dev.publish) ||
         (config.build && config.build.publish);
       if (!dist) {
@@ -211,7 +217,7 @@ class DevCommand extends Command {
       }
       settings = {
         noCmd: true,
-        port: 8888,
+        port: flags.port || 8888,
         proxyPort: 3999,
         dist
       };
@@ -296,7 +302,7 @@ DevCommand.strict = false;
 DevCommand.flags = {
   command: flags.string({ char: "c", description: "command to run" }),
   port: flags.integer({ char: "p", description: "port of netlify dev" }),
-  dir: flags.integer({ char: "d", description: "dir with static files" }),
+  dir: flags.string({ char: "d", description: "dir with static files" }),
   functions: flags.string({
     char: "f",
     description: "Specify a functions folder to serve"
